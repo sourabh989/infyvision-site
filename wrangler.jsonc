@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "infyvision-site",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-01",
+  // Preview hosting only on the workers.dev subdomain. No custom domain or routes are attached.
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+    // Only API calls reach the Worker first; every page/asset is served straight from static assets.
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "infyvision-enquiries",
+      "database_id": "eed368a2-4fe1-449e-857e-cae2934c9d73",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "RATE_LIMIT_MAX": "5",
+    "RATE_LIMIT_WINDOW_MINUTES": "10"
+  },
+  // Secrets (set with `wrangler secret put`, never committed): ADMIN_TOKEN, IP_HASH_SALT
+  "observability": { "enabled": true }
+}

@@ -1,0 +1,27 @@
+{
+  "courses": [
+    "Data Analytics",
+    "Performance Marketing & Analytics",
+    "Web & App Development (Full Stack)",
+    "Tally with US GAAP & IFRS",
+    "Advanced Excel",
+    "Excel Reporting Clinic",
+    "SQL Foundations",
+    "Power BI/DAX Foundations",
+    "GA4 Basics",
+    "Not sure yet"
+  ],
+  "times": [
+    "Weekday morning",
+    "Weekday afternoon",
+    "Weekday evening",
+    "Weekend",
+    "Any time, please call me"
+  ],
+  "levels": [
+    "Complete beginner",
+    "I know the basics",
+    "Working professional",
+    "Business owner"
+  ]
+}
