@@ -141,6 +141,7 @@ for (const form of document.querySelectorAll('[data-enquiry-form]')) {
     if (!/^[6-9]\d{9}$/.test(digits)) return ['Please enter a valid 10-digit Indian mobile number.', 'phone'];
     if (!d.course) return ['Please choose a course.', 'course'];
     if (!d.preferred_time) return ['Please choose a preferred time.', 'preferred_time'];
+    if (!d.consent) return ['Please tick the box to agree to be contacted about courses.', 'consent'];
     return null;
   };
   form.querySelector('[data-wa-fallback]')?.addEventListener('click', () => {

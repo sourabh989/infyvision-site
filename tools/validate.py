@@ -15,8 +15,8 @@ class Page(HTMLParser):
   for k in ['href','src']:
    if k in d:self.refs.append((tag,k,d[k]))
  def handle_data(self,d):self.text.append(d)
-pages={p:Page(p.read_text()) for p in OUT.rglob('*.html') if p.name!='404.html'};assert len(pages)==6
-nf=(OUT/'404.html').read_text();assert 'href="/assets/site.css"' in nf and 'tel:+919098372445' in nf and 'href="/#courses"' in nf,'404 page'
+pages={p:Page(p.read_text()) for p in OUT.rglob('*.html') if p.name!='404.html'};assert len(pages)==13,len(pages)
+nf=(OUT/'404.html').read_text();assert 'href="/assets/site.css"' in nf and 'tel:+919098372445' in nf and 'href="/courses/"' in nf,'404 page'
 issues=[];links=0;wa=0;tel=0
 for p,page in pages.items():
  text=p.read_text();rel=str(p.relative_to(OUT));visible=' '.join(page.text)
@@ -27,6 +27,18 @@ for p,page in pages.items():
  for forbidden in ['100% placement','92%','1500+','guaranteed salary','guaranteed job','limited seats','small batches','QUB','Queen’s','mailto:','cdn.tailwindcss.com','@tailwindcss/browser']:
   if forbidden.lower() in text.lower():issues.append((rel,'Forbidden claim/runtime',forbidden))
  if 'Employment is not guaranteed.' not in visible:issues.append((rel,'Missing disclaimer'))
+ if "Infinity Vision is not affiliated with Queen's University Belfast." not in visible:issues.append((rel,'Missing QUB footer line'))
+ if visible.count("Queen's")!=(2 if rel=='courses/data-analytics/index.html' else 1):issues.append((rel,'Queen\'s mentioned outside the disclaimer'))
+ if rel.startswith('courses/') and rel!='courses/index.html' and 'Placement assistance means support with the process, not a promised job. Employment is not guaranteed.' not in visible:issues.append((rel,'Missing honesty line'))
+ if f'<link rel="canonical" href="https://infyvision.xyz/{rel[:-10]}">' not in text:issues.append((rel,'Canonical'))
+ for blk in re.findall(r'<script type="application/ld\+json">(.*?)</script>',text):
+  try:
+   g=json.loads(blk)['@graph'];types=[x['@type'] for x in g]
+   if 'EducationalOrganization' not in types:issues.append((rel,'Org schema'))
+   if rel!='index.html' and 'BreadcrumbList' not in types:issues.append((rel,'Breadcrumb schema'))
+   if rel.startswith('courses/') and rel!='courses/index.html' and 'Course' not in types:issues.append((rel,'Course schema'))
+   if 'timeRequired' in blk:issues.append((rel,'timeRequired'))
+  except Exception as e:issues.append((rel,'Bad JSON-LD',str(e)))
  if 'E-2, 359 Arera Colony Bhopal' not in visible:issues.append((rel,'Address'))
  for t,a in page.tags:
   if t=='form' and (a.get('action')!='/api/enquiry' or a.get('method')!='post'):issues.append((rel,'Form must POST to /api/enquiry',a.get('action')))
@@ -39,6 +51,7 @@ for p,page in pages.items():
   u=urlsplit(url)
   if u.scheme in ['https','http']:
    if u.netloc=='www.google.com' and u.path.startswith('/maps'):continue
+   if tag=='link' and u.netloc=='infyvision.xyz':continue
    if u.netloc=='wa.me':
     wa+=1
     if u.path!='/919098372445':issues.append((rel,'Wrong WhatsApp',url))
@@ -58,7 +71,7 @@ for p,page in pages.items():
   if tag=='img' and 'alt' not in attrs:issues.append((rel,'Missing alt'))
  # Every new programme page and homepage labels development.
  if rel=='index.html' and 'In development' not in visible:issues.append((rel,'Missing mini-course development label'))
- if 'New' not in visible and 'excel' not in rel:issues.append((rel,'Missing New label'))
+ if (rel=='index.html' or rel.startswith('courses/')) and 'New' not in visible and 'excel' not in rel:issues.append((rel,'Missing New label'))
  for old in ['courses/digital/','courses/web/','courses/marketing-analytics/','courses/data-business-analytics/','courses/tally/']:
   if old in text:issues.append((rel,'Link to retired slug',old))
  if 'Currently advertised' in visible or 'Running now' in visible:issues.append((rel,'Running-status claim'))
@@ -86,10 +99,18 @@ import json as _j;opts=_j.loads((ROOT/'src/form-options.json').read_text())
 assert opts['courses'][:4]==['Data Analytics','Performance Marketing & Analytics','Web & App Development (Full Stack)','Tally with US GAAP & IFRS'] and len(opts['courses'])==10,opts
 for c in opts['courses']:assert 'value="'+c.replace('&','&amp;')+'"' in hometext,c
 for pth in pages:
-  t=pth.read_text();assert t.count('data-enquiry-form')==1 and all(f'name="{f}"' in t for f in ['name','phone','course','level','preferred_time','message','website','source_page']) and 'data-wa-fallback' in t,pth
+  if 'privacy' in str(pth):continue
+  t=pth.read_text();assert t.count('data-enquiry-form')==1 and 'name="consent"' in t and ' required' in t.split('name="consent"')[1][:40] and all(f'name="{f}"' in t for f in ['name','phone','course','level','preferred_time','message','website','source_page']) and 'data-wa-fallback' in t,pth
 for o,n in [('digital','performance-marketing'),('marketing-analytics','performance-marketing'),('web','full-stack'),('data-business-analytics','data-analytics'),('tally','tally-gaap-ifrs')]:
   assert f'/courses/{o}/ /courses/{n}/ 301' in red and (OUT/'courses'/n/'index.html').exists()
-assert (OUT/'robots.txt').read_text()=='User-agent: *\nAllow: /\n'
+assert (OUT/'robots.txt').read_text()=='User-agent: *\nAllow: /\n\nSitemap: https://infyvision.xyz/sitemap.xml\n'
+sm=(OUT/'sitemap.xml').read_text();assert sm.count('<loc>')==len(pages),sm
+for o,n in [('advanced-excel','excel'),('tally-erp-gst','tally-gaap-ifrs'),('us-gaap-ifrs-xero','tally-gaap-ifrs'),('digital-marketing','performance-marketing'),('front-end-development','full-stack'),('full-stack-development','full-stack'),('data-analytics','data-analytics'),('business-analytics','data-analytics'),('app-development','full-stack')]:
+  assert f'/programs/{o}* /courses/{n}/ 301' in red,o
+assert 'FAQPage' in (OUT/'faq/index.html').read_text()
+for pg in ['placement','how-it-works','faculty','faq','contact','courses','privacy']:assert (OUT/pg/'index.html').exists(),pg
+faculty=(OUT/'faculty/index.html').read_text()
+for bad in ['IIT','CA ','years of experience','Queen']:assert bad not in faculty.split('<footer')[0],bad
 files=list(OUT.rglob('*'));assert not any(p.name in ['package.json','package-lock.json','node_modules','BUILD-REVIEW.md'] for p in files)
 report={'pages':len(pages),'local_references_checked':links,'telephone_links':tel,'whatsapp_links':wa,'issues':issues,'html_word_counts':{str(p.relative_to(OUT)):len(' '.join(v.text).split()) for p,v in pages.items()},'assets_bytes':{str(p.relative_to(OUT)):p.stat().st_size for p in (OUT/'assets').iterdir()}}
 (ROOT/'VALIDATION.json').write_text(json.dumps(report,indent=2)+'\n')

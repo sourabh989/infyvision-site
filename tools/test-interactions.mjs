@@ -27,6 +27,9 @@ assert.equal(form.querySelector('[data-form-error]').hidden, false); assert.equa
 form.elements.name.value = 'Riya Sharma'; form.elements.phone.value = '98765 43210';
 form.elements.course.value = 'Data Analytics'; form.elements.preferred_time.value = 'Weekend';
 form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+assert.equal(posted, null, 'consent required before POST');
+form.elements.consent.checked = true;
+form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
 await new Promise(r => setTimeout(r, 50));
 assert.equal(posted.url, '/api/enquiry');
 for (const k of ['name', 'phone', 'course', 'preferred_time', 'level', 'message', 'website', 'source_page']) assert(k in posted.body, k);

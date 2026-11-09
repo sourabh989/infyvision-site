@@ -6,7 +6,7 @@ BASE="${1:?base url}"; TOKEN_FILE="${TOKEN_FILE:-.secrets/admin_token}"
 C=(curl -s --noproxy '*' --max-time 20)
 fail=0; ok(){ echo "PASS $*"; }; bad(){ echo "FAIL $*"; fail=1; }
 code(){ "${C[@]}" -o /dev/null -w '%{http_code}' "$@"; }
-for p in / /courses/data-analytics/ /courses/performance-marketing/ /courses/full-stack/ /courses/tally-gaap-ifrs/ /courses/excel/ /assets/site.css /assets/site.js /robots.txt; do
+for p in / /courses/ /placement/ /how-it-works/ /faculty/ /faq/ /contact/ /privacy/ /sitemap.xml /courses/data-analytics/ /courses/performance-marketing/ /courses/full-stack/ /courses/tally-gaap-ifrs/ /courses/excel/ /assets/site.css /assets/site.js /robots.txt; do
   c=$(code "$BASE$p"); [ "$c" = 200 ] && ok "GET $p 200" || bad "GET $p -> $c"; done
 for pair in digital:performance-marketing marketing-analytics:performance-marketing web:full-stack data-business-analytics:data-analytics tally:tally-gaap-ifrs; do
   o=${pair%%:*}; n=${pair#*:}

@@ -14,6 +14,7 @@ await fs.cp(path.join(root,'site'),target,{recursive:true});
 const assets = path.join(target,'assets');
 const fonts = [400,500,600,700].map(w=>['@fontsource/poppins',`poppins-latin-${w}-normal.woff2`,`poppins-${w}.woff2`]);
 for(const [pkg,src,name] of fonts) await fs.copyFile(path.join(root,'node_modules',pkg,'files',src),path.join(assets,name));
+await fs.copyFile(path.join(root,'src','og-image.png'),path.join(assets,'og-image.png'));
 execFileSync(path.join(root,'node_modules/.bin/tailwindcss'),['-i','src/input.css','-o',path.join(assets,'site.css'),'--minify'],{stdio:'inherit'});
 await build({entryPoints:['src/site.js'],bundle:true,minify:true,target:['es2020'],outfile:path.join(assets,'site.js'),legalComments:'eof'});
 const licenses = [];
