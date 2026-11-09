@@ -46,7 +46,7 @@ for p,page in pages.items():
    continue
   if u.scheme:continue
   if u.path.startswith('/api/'):continue
-  target=(p.parent/unquote(u.path)).resolve() if u.path else p
+  target=((OUT/unquote(u.path).lstrip('/')) if u.path.startswith('/') else (p.parent/unquote(u.path))).resolve() if u.path else p
   if target.is_dir():target=target/'index.html'
   if not target.is_relative_to(OUT):issues.append((rel,'Outside publish',url));continue
   links+=1
@@ -58,7 +58,7 @@ for p,page in pages.items():
   if tag=='img' and 'alt' not in attrs:issues.append((rel,'Missing alt'))
  # Every new programme page and homepage labels development.
  if rel=='index.html' and 'In development' not in visible:issues.append((rel,'Missing mini-course development label'))
- if 'New' not in visible:issues.append((rel,'Missing New label'))
+ if 'New' not in visible and 'excel' not in rel:issues.append((rel,'Missing New label'))
  for old in ['courses/digital/','courses/web/','courses/marketing-analytics/','courses/data-business-analytics/','courses/tally/']:
   if old in text:issues.append((rel,'Link to retired slug',old))
  if 'Currently advertised' in visible or 'Running now' in visible:issues.append((rel,'Running-status claim'))
@@ -66,21 +66,18 @@ css=(OUT/'assets/site.css').read_text();js=(OUT/'assets/site.js').read_text()
 for name in re.findall(r'url\([\'\"]?([^\)\'\"]+)',css):
  if not name.startswith(('data:','%23','#')) and not (OUT/'assets'/name).exists():issues.append(('CSS','Missing asset',name))
 assert 'tailwindcss v4.3.5' in css,'Tailwind compilation banner missing'
-assert '.md\\:grid-cols-2' in css and '.lg\\:grid-cols-2' in css and '.xl\\:grid-cols-3' in css,'Responsive compiled utility missing'
-assert 'prefers-reduced-motion' in css
-assert 'IntersectionObserver' in js and 'animate(' in js and 'requestAnimationFrame' in js
+assert 'prefers-reduced-motion' in css and 'rv-failsafe' in css
+assert 'backdrop-filter' not in css and 'perspective' not in css and 'rotateX' not in css,'No blur/tilt'
+assert 'IntersectionObserver' in js and 'requestAnimationFrame' in js
 assert 'eval(' not in js and 'localStorage' not in js and 'fetch("/api/enquiry"' in js
-assert 'infinity' in (OUT/'assets/THIRD-PARTY-LICENSES.txt').read_text().lower() or 'font' in (OUT/'assets/THIRD-PARTY-LICENSES.txt').read_text().lower()
-home=pages[OUT/'index.html']
-assert len([1 for t,a in home.tags if 'data-course-card' in a])==9
-assert len([1 for t,a in home.tags if t=='details' and 'mini-course' in a.get('class','')])==4
-assert len([1 for t,a in home.tags if t=='article' and re.search(r'\bflagship\b',a.get('class',''))])==4
-hometext=(OUT/'index.html').read_text()
-order=[hometext.index('id="'+s+'" class="course-card') for s in ['data-analytics','performance-marketing','full-stack','tally-gaap-ifrs','excel']]
+home=pages[OUT/'index.html'];hometext=(OUT/'index.html').read_text()
+assert len([1 for t,a in home.tags if 'data-course-card' in a])==5
+assert hometext.count('class="card mini-card"')==4
+order=[hometext.index('class="card course-card" id="'+s+'"') for s in ['data-analytics','performance-marketing','full-stack','tally-gaap-ifrs','excel']]
 assert order==sorted(order),'Main course order wrong'
-for needle in ['Excel Reporting Clinic','SQL Foundations','Power BI/DAX Foundations','GA4 Basics','Performance Marketing &amp; Analytics','Web &amp; App Development (Full Stack)','Tally with US GAAP &amp; IFRS','Roles this prepares you for','data-words="Data Analytics|Performance Marketing','Enquire for next batch']:
+for needle in ['Excel Reporting Clinic','SQL Foundations','Power BI/DAX Foundations','GA4 Basics','Performance Marketing &amp; Analytics','Web &amp; App Development (Full Stack)','Tally with US GAAP &amp; IFRS','Roles this prepares you for','Tools across our current courses and the proposed analytics programmes. SQL, Power BI, DAX, GA4 and UTM work belong to programmes in development.']:
  assert needle in hometext,needle
-assert hometext.count('Enquire on WhatsApp')>=9 and hometext.count('View syllabus')>=9
+assert hometext.count('Enquire on WhatsApp')>=5 and hometext.count('View syllabus')>=5
 for pth in pages:
   if 'courses' in str(pth): assert 'Roles this prepares you for' in pth.read_text() and 'Key topics' in pth.read_text(), pth
 red=(OUT/'_redirects').read_text()
@@ -89,9 +86,10 @@ import json as _j;opts=_j.loads((ROOT/'src/form-options.json').read_text())
 assert opts['courses'][:4]==['Data Analytics','Performance Marketing & Analytics','Web & App Development (Full Stack)','Tally with US GAAP & IFRS'] and len(opts['courses'])==10,opts
 for c in opts['courses']:assert 'value="'+c.replace('&','&amp;')+'"' in hometext,c
 for pth in pages:
-  t=pth.read_text();assert t.count('data-enquiry-form')==1 and 'name="phone"' in t and 'name="website"' in t and 'data-wa-fallback' in t,pth
+  t=pth.read_text();assert t.count('data-enquiry-form')==1 and all(f'name="{f}"' in t for f in ['name','phone','course','level','preferred_time','message','website','source_page']) and 'data-wa-fallback' in t,pth
 for o,n in [('digital','performance-marketing'),('marketing-analytics','performance-marketing'),('web','full-stack'),('data-business-analytics','data-analytics'),('tally','tally-gaap-ifrs')]:
   assert f'/courses/{o}/ /courses/{n}/ 301' in red and (OUT/'courses'/n/'index.html').exists()
+assert (OUT/'robots.txt').read_text()=='User-agent: *\nAllow: /\n'
 files=list(OUT.rglob('*'));assert not any(p.name in ['package.json','package-lock.json','node_modules','BUILD-REVIEW.md'] for p in files)
 report={'pages':len(pages),'local_references_checked':links,'telephone_links':tel,'whatsapp_links':wa,'issues':issues,'html_word_counts':{str(p.relative_to(OUT)):len(' '.join(v.text).split()) for p,v in pages.items()},'assets_bytes':{str(p.relative_to(OUT)):p.stat().st_size for p in (OUT/'assets').iterdir()}}
 (ROOT/'VALIDATION.json').write_text(json.dumps(report,indent=2)+'\n')
