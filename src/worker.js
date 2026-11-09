@@ -10,7 +10,6 @@ const API_HEADERS = {
   'content-type': 'application/json; charset=utf-8',
   'cache-control': 'no-store',
   'x-content-type-options': 'nosniff',
-  'x-robots-tag': 'noindex, nofollow',
   'referrer-policy': 'strict-origin-when-cross-origin',
 };
 
