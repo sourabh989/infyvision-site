@@ -40,10 +40,10 @@ function setupReveals() {
       $$('.draw', entry.target).forEach(path => path.classList.add('is-in'));
       observer.unobserve(entry.target);
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0, rootMargin: '0px 0px -5% 0px' });
   items.forEach(element => observer.observe(element));
   // Safety net: never leave content hidden.
-  setTimeout(() => items.forEach(el => { const r = el.getBoundingClientRect(); if (r.top < innerHeight) el.classList.add('is-in'); }), 1800);
+  setTimeout(() => { items.forEach(el => el.classList.add('is-in')); observer.disconnect(); }, 1500);
   reducedMotion.addEventListener?.('change', event => {
     if (event.matches) { observer.disconnect(); items.forEach(el => el.classList.add('is-in')); document.documentElement.classList.remove('js-motion'); }
   });
@@ -225,11 +225,8 @@ function setupTilt() {
     card.addEventListener('pointermove', e => {
       const r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
       card.style.setProperty('--mx', (x * 100) + '%'); card.style.setProperty('--my', (y * 100) + '%');
-      if (!motionAllowed()) return;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => { card.style.transform = `perspective(900px) rotateX(${(.5 - y) * 6}deg) rotateY(${(x - .5) * 7}deg) translateY(-8px)`; });
     });
-    card.addEventListener('pointerleave', () => { cancelAnimationFrame(raf); card.style.transform = ''; });
+    card.addEventListener('pointerleave', () => { cancelAnimationFrame(raf); });
   });
 }
 

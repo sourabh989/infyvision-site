@@ -573,3 +573,116 @@ html:has(.course-subnav){scroll-padding-top:calc(var(--nav-h) + 72px)}
  .course-visual{display:none}
  .course-hero .hero-actions .btn{flex:1 1 150px}
 }
+
+/* ===== V6: sitewide, nothing gets cut off ===== */
+/* Cards and sections grow to fit their content; decoration stays in its own clipped .hero-fx/.section-fx/.cta-fx layer */
+.course-card,.bento-tile,.flagship,.project-card,.glass-dark,.cv-row,.other-card,.fit-card,.scene,.hero-card,.course-visual{overflow:visible;height:auto;max-height:none}
+.hero,.dark-section,.cta-band,.career-band,.site-footer,.section{overflow:visible;overflow-x:clip}
+.course-card>*,.flagship>*,.bento-tile>*,.project-card>*{min-height:0;max-height:none;-webkit-line-clamp:unset;line-clamp:none}
+.cv-rows{max-height:none;overflow:visible}
+/* No 3D tilt and no backdrop blur on cards (Safari draws them partly cut off) */
+.tilt,.tilt:hover{transform-style:flat;will-change:auto;perspective:none}
+.glass,.stat,.flagship,.bento-tile,.career-section .bento-tile,.hero-badge,.btn-glass,.map-open,.motion-control,.course-subnav{backdrop-filter:none;-webkit-backdrop-filter:none}
+.glass{background:linear-gradient(150deg,rgba(40,55,140,.92),rgba(18,26,80,.92))}
+.course-subnav{background:rgba(255,255,255,.97)}
+/* Reveals always finish fully visible */
+.js-motion [data-reveal].is-in{opacity:1!important;transform:none!important}
+@media (prefers-reduced-motion:reduce){[data-reveal],.js-motion [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}}
+/* Laptop-height friendly spacing */
+.section{padding-block:clamp(52px,9vh,110px)}
+.cta-band{padding-block:clamp(48px,8vh,90px)}
+.career-band{padding-block:clamp(40px,7vh,70px)}
+.site-footer{padding-top:clamp(48px,8vh,80px)}
+.hero:not(.home-hero):not(.course-hero){padding:calc(var(--hdr) + clamp(16px,3vh,40px)) 0 clamp(40px,7vh,70px)}
+.section-heading{margin-bottom:clamp(24px,4vh,56px)}
+/* Mobile carousels: room inside the scroller so card edges and hover lift are never cut */
+@media (max-width:640px){.course-group>.grid{padding:12px 18px 22px;scroll-padding-inline:18px}}
+
+/* ===== V6b: every card fits inside one laptop screen ===== */
+:root{--nav-h:60px}
+@media (max-width:900px){:root{--nav-h:60px}}
+.nav-row{height:var(--nav-h)}
+.brand-symbol{width:36px;height:36px}
+.section{padding-block:clamp(40px,7vh,88px)}
+.section-heading{margin-bottom:clamp(18px,3vh,40px)}
+.section-heading h2{font-size:clamp(1.7rem,min(3.4vw,5.6vh),3rem);line-height:1.08}
+.section-heading p{margin-top:clamp(6px,1.2vh,14px);font-size:clamp(.9rem,2vh,1.05rem)}
+.course-group+.course-group{margin-top:clamp(28px,5vh,56px)}
+.group-title{margin-bottom:clamp(10px,2vh,20px)}
+/* Course cards (main, Excel, mini) */
+.course-card,.main-card,.short-grid .course-card{padding:18px 20px 16px}
+.course-card .card-top{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.course-card .card-top .icon-tile{width:40px;height:40px;border-radius:12px}.course-card .card-top .icon-tile .icon{width:20px;height:20px}
+.course-card .ct-text{flex:1 1 180px;min-width:0}
+.course-card .card-kicker{font-size:.62rem;letter-spacing:.12em;display:block;line-height:1.3}
+.course-card h3,.main-card h3{margin-top:2px;font-size:clamp(1.1rem,2.6vh,1.35rem);line-height:1.2}
+.course-card .pill-row{display:flex;flex-wrap:wrap;gap:4px;margin:0;flex:0 1 auto}
+.course-card .pill-row .pill,.course-card .card-top .pill{margin:0;padding:3px 9px;font-size:.66rem}
+.course-card>p{margin-top:4px;font-size:.84rem;line-height:1.45}
+.course-card .level{margin-top:6px;padding:3px 8px;font-size:.74rem}
+.course-card .topics{margin-top:10px;padding-top:10px}
+.course-card .block-label{font-size:.62rem;margin-bottom:6px}.course-card .block-label .icon{width:14px;height:14px}
+.course-card .mod-list,.main-card .mod-list{grid-template-columns:1fr 1fr;gap:4px 14px}
+.course-card .mod-list li{font-size:13px;line-height:1.3;gap:6px}
+.course-card .mod-list .icon{width:14px;height:14px;padding:2px;margin-top:1px;flex-shrink:0}
+.course-card .tag-new{margin-left:4px;padding:0 5px;font-size:.56rem;vertical-align:1px}
+.course-card .roles{margin-top:10px;padding:0;background:none;border:0;border-radius:0}
+.course-card .role-chips{gap:4px}.course-card .role-chips span{font-size:.7rem;padding:2px 8px}
+.course-card .card-actions{padding-top:12px;gap:8px 14px}
+.course-card .btn-sm{min-height:38px;padding:7px 12px;font-size:.8rem;gap:6px}
+.course-card .btn-sm svg{width:16px;height:16px}
+.course-card .card-link{font-size:.82rem}
+.card-rank{display:none}
+@media (max-width:640px){.course-card .mod-list,.main-card .mod-list{grid-template-columns:1fr}.main-card .card-top{flex-direction:row;align-items:center}}
+/* Other cards: tighter */
+.bento-tile{padding:clamp(16px,2.6vh,24px)}.bento-tile h3{margin-top:10px}
+.flagship{padding:clamp(18px,3vh,28px)}.flag-visual{margin:clamp(10px,2vh,18px) 0;padding:12px}.flag-mods{margin-top:12px}
+.project-card{padding:18px 18px 20px}
+/* Illustrations: capped by screen height so their card fits */
+.scene{max-width:min(100%,calc(40vh * 1.23));margin-inline:auto}
+.scene-grid .scene{width:100%}
+.bento-hero .scene{max-width:min(100%,calc(30vh * 1.23));padding-top:14px}
+.bento-hero{padding:clamp(18px,3vh,30px)}.bento-hero h3{font-size:clamp(1.4rem,min(2.4vw,4.4vh),2rem)}.bento-hero p{font-size:.95rem}
+@media (max-width:1100px){.bento-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:20px;align-items:center}.bento-hero>*{grid-column:1}.bento-hero .scene{grid-column:2;grid-row:1/span 4;margin:0;padding:0;width:min(34vw,calc(36vh * 1.23))}}
+@media (max-width:640px){.bento-hero{display:flex}.bento-hero .scene{width:auto}}
+/* What's new cards */
+.flagship h3{font-size:clamp(1.25rem,3vh,1.6rem)}.flag-tag{margin-top:4px;font-size:.88rem}
+.flag-mods{gap:5px 14px}.flag-mods li{font-size:.82rem;line-height:1.3}
+.flagship .card-actions{padding-top:14px}.flagship .btn{min-height:42px;padding:9px 14px;font-size:.86rem}
+@media (max-height:760px){.flag-visual{display:none}}
+/* Main course cards: one per row until the cards are wide enough to stay short */
+@media (max-width:1180px){.main-grid{grid-template-columns:1fr}.main-card .mod-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){.main-card .mod-list{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.main-card .mod-list{grid-template-columns:1fr}}
+/* Project previews */
+.dash{margin-bottom:12px}.dash-body{min-height:0;padding:14px;gap:10px}
+.project-card h3{margin-top:8px;font-size:1.2rem}
+/* Enquiry forms */
+.contact-card{padding:clamp(16px,2.6vh,26px)}
+.contact-card h3{font-size:1.25rem;margin-bottom:10px}
+.wa-form,.form-fields{gap:10px}.field-row{gap:10px}.field{gap:4px}.field label{font-size:.82rem}
+.field input,.field select{min-height:42px;padding:8px 12px}
+.field textarea{min-height:60px;padding:8px 12px}
+.enquiry-sticky{top:calc(var(--nav-h) + 60px);padding:clamp(16px,2.6vh,26px)}
+.enquiry-sticky h2{font-size:clamp(1.25rem,3vh,1.6rem);margin-top:8px}.enquiry-sticky>p{margin-top:6px;font-size:.88rem}
+.enquiry-sticky .btn{margin-top:8px;min-height:44px}.enquiry-sticky .fine{margin-top:10px}.enquiry-sticky .pill-row{margin-bottom:8px}
+.course-visual .cv-rows{margin-top:10px}
+.contact-grid{align-items:start}
+.form-fields{grid-template-columns:1fr 1fr}.form-fields>*{grid-column:1/-1}.form-fields>.field:nth-child(1),.form-fields>.field:nth-child(2){grid-column:auto}
+@media (max-width:560px){.form-fields>.field:nth-child(1),.form-fields>.field:nth-child(2){grid-column:1/-1}}
+.field textarea{min-height:52px}
+.contact-card .fine{font-size:.74rem;line-height:1.4}.contact-card .btn-block{min-height:44px}
+.cv-rows{gap:6px}.cv-row{padding:6px 9px}
+.project-card>p{font-size:.88rem;line-height:1.45}.project-card details{margin-top:8px}.project-card summary{padding:10px 0 2px}
+.dash-top{padding:8px 12px}.dash-body{padding:12px;gap:8px}
+.wa-form,.form-fields{gap:8px}.field label{font-size:.78rem;line-height:1.3}
+.contact-card h3{margin-bottom:8px}
+.form-fields{grid-template-columns:repeat(6,minmax(0,1fr))}.form-fields>.field:nth-child(1),.form-fields>.field:nth-child(2){grid-column:span 3}
+.form-fields .field-row{display:contents}
+@media (min-width:1181px){.form-fields>.field:nth-child(3){grid-column:1/-1}.form-fields .field-row>.field{grid-column:span 3}}
+@media (max-width:1180px) and (min-width:761px){.contact-grid{grid-template-columns:1fr}.form-fields>.field:nth-child(3),.form-fields .field-row>.field{grid-column:span 2}}
+@media (max-width:760px){.form-fields>*,.form-fields>.field:nth-child(1),.form-fields>.field:nth-child(2),.form-fields .field-row>.field{grid-column:1/-1}}
+.field textarea{min-height:44px}
+.wa-form .wa-fallback{min-height:42px}
+.project-card{padding:16px 18px 16px}.project-card h3{margin-top:6px;font-size:1.15rem}
+@media (max-height:760px){.field input,.field select{min-height:38px;padding:6px 10px}.field textarea{min-height:38px;padding:6px 10px}.contact-card{padding:14px 18px}.contact-card h3{font-size:1.1rem;margin-bottom:6px}.contact-card .btn-block,.wa-form .wa-fallback{min-height:40px;padding-block:8px}}
