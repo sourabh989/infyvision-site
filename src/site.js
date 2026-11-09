@@ -49,31 +49,44 @@ function setupReveals() {
   });
 }
 
-/* Particle network: cursor-reactive, linked nodes, click to add. */
-function particleField(canvas, state) {
+/* Particle network: cursor-reactive, linked nodes, click to add.
+   The canvas follows its container's CSS box (ResizeObserver), never the window, and its bitmap is always
+   cssSize x devicePixelRatio (capped at 2) so it is never stretched. Dot size, speed and link distance are in CSS px. */
+function particleField(canvas) {
   const ctx = canvas.getContext && canvas.getContext('2d');
   if (!ctx) return null;
   const host = canvas.parentElement;
   const colours = ['255,255,255', '141,227,255', '170,160,255'];
-  let w = 0, h = 0, dpr = 1, points = [], raf = 0;
+  const cap = Number(canvas.dataset.count) || 80;
+  const EDGE = 24, MAX_POINTS = 220;
+  let w = 0, h = 0, dpr = 1, points = [], raf = 0, running = false, redistTimer = 0, pending = null;
   const mouse = { x: -9999, y: -9999 };
-  const base = Number(canvas.dataset.count) || 80;
-  const resize = () => {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    w = host.clientWidth; h = host.clientHeight;
-    canvas.width = w * dpr; canvas.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const n = Math.round(base * Math.min(1, (w * h) / (1280 * 800)) + (w < 640 ? 10 : 20));
-    points = Array.from({ length: n }, () => ({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - .5) * .55, vy: (Math.random() - .5) * .55, r: Math.random() * 2.2 + .8, c: colours[(Math.random() * 3) | 0] }));
+  const targetCount = () => {
+    const perDot = w < 640 ? 9000 : 13000; // CSS px² per dot: phones stay airy but not empty
+    return Math.max(18, Math.min(cap, Math.round((w * h) / perDot)));
   };
-  const frame = () => {
-    ctx.clearRect(0, 0, w, h);
-    const link = w < 640 ? 110 : 150;
+  const makePoint = (x, y, speed = .5) => ({ x, y, vx: (Math.random() - .5) * speed, vy: (Math.random() - .5) * speed, r: Math.random() * 1.5 + .9, c: colours[(Math.random() * 3) | 0] });
+  const seed = () => { points = Array.from({ length: targetCount() }, () => makePoint(Math.random() * w, Math.random() * h)); };
+  // Spread the existing dots over the new box (positions only; dots keep their CSS px size) and top up / trim by area.
+  const redistribute = (ow, oh) => {
+    const sx = w / ow, sy = h / oh;
+    points.forEach(p => { p.x *= sx; p.y *= sy; });
+    const n = targetCount();
+    while (points.length < n) points.push(makePoint(Math.random() * w, Math.random() * h));
+    if (points.length > n) points.length = n;
+  };
+  const step = () => {
     for (const p of points) {
       p.x += p.vx; p.y += p.vy;
-      if (p.x < -10) p.x = w + 10; if (p.x > w + 10) p.x = -10; if (p.y < -10) p.y = h + 10; if (p.y > h + 10) p.y = -10;
+      if (p.x < -EDGE) p.x = w + EDGE; else if (p.x > w + EDGE) p.x = -EDGE;
+      if (p.y < -EDGE) p.y = h + EDGE; else if (p.y > h + EDGE) p.y = -EDGE;
       const dx = p.x - mouse.x, dy = p.y - mouse.y, d = Math.hypot(dx, dy);
       if (d < 120 && d > 0) { p.x += dx / d * 1.2; p.y += dy / d * 1.2; }
     }
+  };
+  const draw = () => {
+    ctx.clearRect(0, 0, w, h);
+    const link = w < 640 ? 105 : 145;
     for (let i = 0; i < points.length; i++) {
       const a = points[i];
       for (let j = i + 1; j < points.length; j++) {
@@ -84,24 +97,54 @@ function particleField(canvas, state) {
       if (md < 190) { ctx.strokeStyle = `rgba(92,225,255,${(1 - md / 190) * .7})`; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke(); }
       ctx.fillStyle = `rgba(${a.c},.85)`; ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2); ctx.fill();
     }
-    raf = requestAnimationFrame(frame);
   };
+  const frame = () => { step(); draw(); raf = running ? requestAnimationFrame(frame) : 0; };
+  // Match the bitmap to the container's layout size (clientWidth/Height ignore transforms, so no parent scale leaks in).
+  const fit = () => {
+    const nw = host.clientWidth, nh = host.clientHeight, nd = Math.min(window.devicePixelRatio || 1, 2);
+    if (!nw || !nh || (nw === w && nh === h && nd === dpr)) return;
+    const ow = w, oh = h;
+    w = nw; h = nh; dpr = nd;
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    ctx.setTransform(canvas.width / w, 0, 0, canvas.height / h, 0, 0);
+    if (!ow || !points.length) seed();
+    else if (Math.abs(w - ow) > 1 || Math.abs(h - oh) > 120) {
+      // Real layout change (rotation, window resize): debounce the respread so dragging a window doesn't churn.
+      // Positions are respread against the size they were laid out for, so chained resizes stay consistent.
+      clearTimeout(redistTimer);
+      if (!pending) pending = { w: ow, h: oh };
+      const run = () => { redistTimer = 0; if (pending) { redistribute(pending.w, pending.h); pending = null; } };
+      if (Math.abs(w - pending.w) > pending.w * .25) run(); else redistTimer = setTimeout(run, 180);
+    }
+    // Small height-only changes (mobile address bar, text reflow) keep every dot where it is; edge wrap handles the rest.
+    draw(); // resizing clears the bitmap: repaint now so there is no blank frame
+  };
+  if ('ResizeObserver' in window) new ResizeObserver(() => fit()).observe(host);
+  let resizeTimer;
+  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(fit, 120); });
+  // Browser zoom or moving to another screen changes devicePixelRatio without a size change.
+  const watchDpr = () => {
+    if (!window.matchMedia) return;
+    const mq = matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+    const on = () => { fit(); watchDpr(); };
+    mq.addEventListener ? mq.addEventListener('change', on, { once: true }) : mq.addListener?.(on);
+  };
+  watchDpr();
   const section = canvas.closest('section');
-  section.addEventListener('pointermove', e => { const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; });
+  const toLocal = e => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) * (w / (r.width || w)), y: (e.clientY - r.top) * (h / (r.height || h)) }; };
+  section.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; const q = toLocal(e); mouse.x = q.x; mouse.y = q.y; });
   section.addEventListener('pointerleave', () => { mouse.x = mouse.y = -9999; });
   section.addEventListener('click', e => {
     if (e.target.closest('a,button,input,select,label,summary')) return;
-    const r = canvas.getBoundingClientRect();
-    for (let k = 0; k < 4; k++) points.push({ x: e.clientX - r.left, y: e.clientY - r.top, vx: (Math.random() - .5) * 1.4, vy: (Math.random() - .5) * 1.4, r: Math.random() * 2 + 1, c: colours[k % 3] });
-    if (points.length > 220) points.splice(0, 4);
+    const q = toLocal(e);
+    for (let k = 0; k < 4; k++) points.push({ ...makePoint(q.x, q.y, 1.4), c: colours[k % 3] });
+    if (points.length > MAX_POINTS) points.splice(0, 4);
   });
-  let resizeTimer;
-  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(resize, 150); });
-  resize();
+  fit();
   return {
-    start() { if (!raf) raf = requestAnimationFrame(frame); },
-    stop() { cancelAnimationFrame(raf); raf = 0; },
-    still() { cancelAnimationFrame(raf); raf = 0; frame(); cancelAnimationFrame(raf); raf = 0; }
+    start() { running = true; if (!raf) raf = requestAnimationFrame(frame); },
+    stop() { running = false; cancelAnimationFrame(raf); raf = 0; },
+    still() { running = false; cancelAnimationFrame(raf); raf = 0; draw(); }
   };
 }
 
