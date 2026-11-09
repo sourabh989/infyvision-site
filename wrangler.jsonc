@@ -11,8 +11,8 @@
     "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page",
-    // Only API calls reach the Worker first; every page/asset is served straight from static assets.
-    "run_worker_first": ["/api/*"]
+    // Only API calls and old /programs/* redirects reach the Worker first; every page/asset is served straight from static assets.
+    "run_worker_first": ["/api/*", "/programs", "/programs/*"]
   },
   "d1_databases": [
     {

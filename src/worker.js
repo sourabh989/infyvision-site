@@ -148,9 +148,25 @@ const ROUTES = {
   '/api/enquiries/mark-synced': { POST: handleMarkSynced, admin: true },
 };
 
+// Old live-site URLs (/programs/...) -> current course pages. Prefix match so variants like
+// /programs/digital-marketing-course/ or /programs/advanced-excel.html are covered. 301, query dropped.
+export const PROGRAM_REDIRECTS = [
+  ['advanced-excel', 'excel'], ['tally-erp-gst', 'tally-gaap-ifrs'], ['us-gaap-ifrs-xero', 'tally-gaap-ifrs'],
+  ['digital-marketing', 'performance-marketing'], ['front-end-development', 'full-stack'], ['full-stack-development', 'full-stack'],
+  ['data-analytics', 'data-analytics'], ['business-analytics', 'data-analytics'], ['app-development', 'full-stack'],
+];
+export function programTarget(pathname) {
+  if (!/^\/programs(\/|$)/.test(pathname)) return null;
+  const rest = pathname.replace(/^\/programs\/?/, '').toLowerCase();
+  const hit = PROGRAM_REDIRECTS.find(([old]) => rest.startsWith(old));
+  return hit ? `/courses/${hit[1]}/` : '/courses/';
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const moved = programTarget(url.pathname);
+    if (moved) return new Response(null, { status: 301, headers: { location: new URL(moved, url.origin).toString(), 'cache-control': 'public, max-age=3600' } });
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     const route = ROUTES[url.pathname.replace(/\/+$/, '')];
     if (!route) return json({ ok: false, error: 'Not found.' }, 404);

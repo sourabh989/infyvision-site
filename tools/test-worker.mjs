@@ -1,6 +1,6 @@
 // Unit tests for the Worker's pure validation helpers (no network, no D1).
 import assert from 'node:assert/strict';
-import { normalisePhone, validateEnquiry, istIso } from '../src/worker.js';
+import { normalisePhone, validateEnquiry, istIso, programTarget } from '../src/worker.js';
 import OPTIONS from '../src/form-options.json' with { type: 'json' };
 for (const [raw, want] of [['9876543210','9876543210'],['+91 98765 43210','9876543210'],['91-98765-43210','9876543210'],['09876543210','9876543210'],['(987) 654-3210','9876543210'],['5876543210',''],['987654321',''],['98765432100',''],['abcdefghij',''],['','']]) assert.equal(normalisePhone(raw), want, raw);
 assert.equal(istIso(new Date('2026-11-09T18:45:30Z')), '2026-11-10T00:15:30+05:30');
@@ -13,4 +13,6 @@ assert(!validateEnquiry({ ...good, name: '1' }).ok);
 assert(!validateEnquiry({ ...good, level: 'Expert hacker' }).ok);
 assert.equal(validateEnquiry({ ...good, message: 'x'.repeat(900) }).value.message.length, 600);
 assert.equal(validateEnquiry({ ...good, source_page: 'https://evil' }).value.source_page, null);
-console.log('PASS worker: phone normalisation, IST timestamps, course/time/level allow-lists, length limits');
+for (const [o, n] of [['/programs/advanced-excel','excel'],['/programs/advanced-excel.html','excel'],['/programs/tally-erp-gst/','tally-gaap-ifrs'],['/programs/us-gaap-ifrs-xero','tally-gaap-ifrs'],['/programs/digital-marketing-course/','performance-marketing'],['/programs/front-end-development','full-stack'],['/programs/full-stack-development/','full-stack'],['/programs/data-analytics','data-analytics'],['/programs/business-analytics','data-analytics'],['/programs/app-development/','full-stack']]) assert.equal(programTarget(o), `/courses/${n}/`, o);
+assert.equal(programTarget('/programs/'), '/courses/'); assert.equal(programTarget('/programs'), '/courses/'); assert.equal(programTarget('/programsx'), null); assert.equal(programTarget('/courses/excel/'), null);
+console.log('PASS worker: /programs/* 301 map; phone normalisation, IST timestamps, course/time/level allow-lists, length limits');

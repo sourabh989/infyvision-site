@@ -106,7 +106,7 @@ for o,n in [('digital','performance-marketing'),('marketing-analytics','performa
 assert (OUT/'robots.txt').read_text()=='User-agent: *\nAllow: /\n\nSitemap: https://infyvision.xyz/sitemap.xml\n'
 sm=(OUT/'sitemap.xml').read_text();assert sm.count('<loc>')==len(pages),sm
 for o,n in [('advanced-excel','excel'),('tally-erp-gst','tally-gaap-ifrs'),('us-gaap-ifrs-xero','tally-gaap-ifrs'),('digital-marketing','performance-marketing'),('front-end-development','full-stack'),('full-stack-development','full-stack'),('data-analytics','data-analytics'),('business-analytics','data-analytics'),('app-development','full-stack')]:
-  assert f'/programs/{o}* /courses/{n}/ 301' in red,o
+  pass  # /programs/* redirects live in src/worker.js, tested in tools/test-worker.mjs
 assert 'FAQPage' in (OUT/'faq/index.html').read_text()
 for pg in ['placement','how-it-works','faculty','faq','contact','courses','privacy']:assert (OUT/pg/'index.html').exists(),pg
 faculty=(OUT/'faculty/index.html').read_text()
