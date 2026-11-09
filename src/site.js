@@ -157,14 +157,17 @@ function setupHeroMotion() {
   let manuallyPaused = false, inView = true;
   const control = document.createElement('button');
   control.type = 'button'; control.className = 'motion-control'; control.setAttribute('aria-pressed', 'false');
-  hero.append(control);
+  (hero.querySelector('.marquee-band') || hero).append(control);
   const update = () => {
     const enabled = motionAllowed();
     const paused = manuallyPaused || !inView || document.hidden;
     hero.classList.toggle('motion-active', enabled);
     hero.classList.toggle('motion-paused', !enabled || paused);
     control.hidden = !enabled;
-    control.textContent = manuallyPaused ? 'Resume motion' : 'Pause motion';
+    control.innerHTML = manuallyPaused
+      ? '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>'
+      : '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>';
+    control.title = manuallyPaused ? 'Resume background motion' : 'Pause background motion';
     control.setAttribute('aria-pressed', String(manuallyPaused));
     control.setAttribute('aria-label', (manuallyPaused ? 'Resume' : 'Pause') + ' decorative background motion');
     if (field) { if (enabled && !paused) field.start(); else if (!enabled) field.still(); else field.stop(); }
@@ -269,6 +272,18 @@ function setupScrollEffects() {
   window.addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
   window.addEventListener('resize', update);
   update();
+  // Expose the un-collapsed header height (preview strip + nav row) so the first view can fit below it exactly.
+  const strip = header && $('.preview-strip', header), nav = header && $('.nav-row', header);
+  if (strip && nav) {
+    const setHdr = () => {
+      const cs = getComputedStyle(strip);
+      const text = strip.scrollHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0);
+      document.documentElement.style.setProperty('--hdr', Math.ceil(nav.offsetHeight + text + 10) + 'px');
+    };
+    setHdr();
+    window.addEventListener('resize', setHdr);
+    document.fonts?.ready?.then(setHdr);
+  }
 }
 
 function setupCourseFilters() {
