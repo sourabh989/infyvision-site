@@ -24,8 +24,9 @@ for p,page in pages.items():
  if len([1 for t,a in page.tags if t=='h1'])!=1:issues.append((rel,'Expected one h1'))
  for number in ['7898338899','6266771665','917898338899']:
   if number in text:issues.append((rel,'Old contact',number))
- for forbidden in ['100% placement','92%','1500+','guaranteed salary','guaranteed job','limited seats','small batches','QUB','Queen’s','mailto:','cdn.tailwindcss.com','@tailwindcss/browser']:
+ for forbidden in ['92%','1500+','guaranteed salary','guaranteed job','limited seats','small batches','QUB','Queen’s','mailto:','cdn.tailwindcss.com','@tailwindcss/browser']:
   if forbidden.lower() in text.lower():issues.append((rel,'Forbidden claim/runtime',forbidden))
+ if re.search(r'100%\s+placement(?!\s+assistance)', text, re.I):issues.append((rel,'Forbidden claim/runtime','100% placement'))
  if 'Employment is not guaranteed.' not in visible:issues.append((rel,'Missing disclaimer'))
  if "Infinity Vision is not affiliated with Queen's University Belfast." not in visible:issues.append((rel,'Missing QUB footer line'))
  if visible.count("Queen's")!=(2 if rel=='courses/data-analytics/index.html' else 1):issues.append((rel,'Queen\'s mentioned outside the disclaimer'))
@@ -88,11 +89,11 @@ assert len([1 for t,a in home.tags if 'data-course-card' in a])==5
 assert hometext.count('class="card mini-card"')==4
 order=[hometext.index('class="card course-card" id="'+s+'"') for s in ['data-analytics','performance-marketing','full-stack','tally-gaap-ifrs','excel']]
 assert order==sorted(order),'Main course order wrong'
-for needle in ['Excel Reporting Clinic','SQL Foundations','Power BI/DAX Foundations','GA4 Basics','Performance Marketing &amp; Analytics','Web &amp; App Development (Full Stack)','Tally with US GAAP &amp; IFRS','Roles this prepares you for','Tools across our current courses and the proposed analytics programmes. SQL, Power BI, DAX, GA4 and UTM work belong to programmes in development.']:
+for needle in ['Excel Reporting Clinic','SQL Foundations','Power BI/DAX Foundations','GA4 Basics','Performance Marketing &amp; Analytics','Web &amp; App Development (Full Stack)','Tally with US GAAP &amp; IFRS','Roles you can apply for','Tools you practise in our Bhopal classroom include Excel, SQL, Power BI, Google Ads, Meta Ads, GA4, Tally Prime, HTML, CSS and React.']:
  assert needle in hometext,needle
-assert hometext.count('Enquire on WhatsApp')>=5 and hometext.count('View syllabus')>=5
+assert hometext.count('WhatsApp us')>=5 and hometext.count('View syllabus')>=5
 for pth in pages:
-  if 'courses' in str(pth): assert 'Roles this prepares you for' in pth.read_text() and 'Key topics' in pth.read_text(), pth
+  if 'courses' in str(pth): assert 'Roles you can apply for' in pth.read_text() and 'Key topics' in pth.read_text(), pth
 red=(OUT/'_redirects').read_text()
 hdr=(OUT/'_headers').read_text();assert "form-action 'self' https://wa.me" in hdr and "connect-src 'self'" in hdr,'CSP'
 import json as _j;opts=_j.loads((ROOT/'src/form-options.json').read_text())

@@ -166,7 +166,7 @@ for (const form of document.querySelectorAll('[data-enquiry-form]')) {
     } catch {
       fail('No connection. Please try again, or tap “Send on WhatsApp”.');
     } finally {
-      submit.disabled = false; label.textContent = 'Send enquiry';
+      submit.disabled = false; label.textContent = 'Book my free counselling';
     }
   });
 }

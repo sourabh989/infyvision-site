@@ -100,8 +100,8 @@
 
 .home-hero { min-height: 100svh; display: flex; flex-direction: column; padding-top: var(--nav-h); box-sizing: border-box; }
 .home-hero .hero-grid { flex: 1; padding-top: clamp(14px, 3svh, 40px); padding-bottom: clamp(12px, 2.4svh, 32px); }
-.home-hero h1 { font-size: clamp(30px, min(4.6vw, 7.4svh), 58px); font-weight: 700; }
-.typed-line { font-size: clamp(19px, min(2.3vw, 4.2svh), 30px); font-weight: 600; color: #fff; white-space: nowrap; min-height: 1.3em; }
+.home-hero h1 { font-size: clamp(26px, min(3.8vw, 6.4svh), 48px); font-weight: 700; }
+.typed-line { font-size: clamp(17px, min(2.1vw, 3.8svh), 28px); font-weight: 600; color: #fff; white-space: normal; min-height: 1.3em; overflow-wrap: break-word; }
 .typed { color: #8de3ff; }
 .caret { display: inline-block; width: 3px; height: 1em; margin-left: 4px; vertical-align: -.12em; background: #8de3ff; animation: blink .8s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0 } }
