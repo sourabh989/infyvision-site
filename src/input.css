@@ -326,11 +326,11 @@
 .js .card.in:hover { transform: translateY(-4px); }
 .js .map-card.in:hover, .js .contact-rows.in:hover { transform: none; }
 @media (max-height: 620px) and (min-width: 768px) {
-  .home-hero .hero-grid { padding-top: 10px; padding-bottom: 10px; }
-  .home-hero .hero-copy { gap: 9px; }
+  .home-hero .hero-grid { padding-top: 8px; padding-bottom: 8px; }
+  .home-hero .hero-copy { gap: 8px; }
   .hero-card { gap: 7px; padding: 14px 18px; }
-  .tools { padding: 7px 0 6px; }
-  .tools-note { margin-top: 5px; }
+  .tools { padding: 5px 0 4px; }
+  .tools-note { margin-top: 2px; }
 }
 @media (max-width: 559px) {
   .enq-fields { gap: 8px; }
@@ -353,6 +353,30 @@
 .hero-solo { display: block; }
 .inner-hero .hero-copy { max-width: 760px; }
 .inner-hero h1 { font-size: clamp(28px, min(3.8vw, 6.4svh), 46px); font-weight: 700; }
+
+/* Inner pages: first view ends on a clean hero edge, so the next section is not cut mid-card or mid-sentence. */
+.inner-hero {
+  min-height: 100svh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: calc(var(--nav-h) + clamp(12px, 2.2svh, 32px)) 0 clamp(16px, 3svh, 36px);
+}
+.inner-hero .wrap { width: 100%; }
+@media (max-width: 1023px) {
+  /* Placement glance card is repeated in the section below; hiding it on stacked layouts keeps the hero inside the first screen. */
+  .inner-hero .hero-card { display: none; }
+}
+@media (max-height: 620px) {
+  .inner-hero { padding-top: calc(var(--nav-h) + 10px); padding-bottom: 12px; }
+  .inner-hero h1 { font-size: clamp(22px, 5.2svh, 36px); }
+  .inner-hero .lead { font-size: 14px; }
+  .inner-hero .hero-copy { gap: 8px; }
+  .inner-hero .hero-card { padding: 14px 18px; gap: 7px; }
+  .inner-hero .role-list { gap: 6px; }
+  .inner-hero .role-list li { font-size: 13px; }
+}
 .qf-wrap { margin-top: clamp(18px, 3.4svh, 34px); }
 .quick-facts { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; padding: 12px; border-radius: 18px; background: rgba(5,10,30,.38); border: 1px solid rgba(255,255,255,.18); }
 @media (min-width: 900px) { .quick-facts { grid-template-columns: repeat(4, minmax(0,1fr)); } }
