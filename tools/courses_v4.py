@@ -99,11 +99,11 @@ MAIN = [c for c in COURSES if c['main']]
 REDIRECTS = {'digital': 'performance-marketing', 'marketing-analytics': 'performance-marketing', 'web': 'full-stack', 'data-business-analytics': 'data-analytics', 'tally': 'tally-gaap-ifrs'}
 
 FAQ = [
- ('Is this an online course platform?', 'No. Classes are offline only, at Infinity Vision in Arera Colony, Bhopal. Ask about attendance and available timings before choosing a course.'),
+ ('Is this an online course platform?', 'No. Classes are offline only, at our centre. Ask about attendance and available timings before choosing a course.'),
  ('Which courses do you offer?', 'Our main courses are Data Analytics, Performance Marketing & Analytics, Web & App Development (Full Stack) and Tally with US GAAP & IFRS, plus Advanced Excel. Four short mini-courses are in development. Ask about the next batch and your starting level; a course listing is not confirmation of an open batch.'),
  ('What is new in the courses?', 'Data Analytics is a new course. Performance Marketing & Analytics, Full Stack and Tally with US GAAP & IFRS build on our earlier Digital Marketing, Web Development and Tally courses with new modules, which are marked “New” on each course page. Ask us which new modules are running in the next batch.'),
  ('What does full career support include?', 'CV help, LinkedIn and Naukri profile support, mock interviews, portfolio building and placement assistance. Ask how these services apply to your course. Employment is not guaranteed.'),
  ('What are the fees, timings and software requirements?', 'Contact the institute for course fees, timings, teaching language, equipment and software requirements and relevant policies. These are not the same for every course.'),
  ('Do I need coding for Data Analytics?', 'No. Basic computer and spreadsheet comfort is the starting point. SQL is taught inside the course and Python is not a prerequisite.'),
- ('How do I arrange a visit?', 'Call 9098372445 or WhatsApp us to request a suitable time. The institute is at E-2, 359 Arera Colony Bhopal. Please wait for us to confirm before travelling; a request is not a confirmed appointment.'),
+ ('How do I arrange a visit?', 'Call 9098372445 or WhatsApp us to request a suitable time. Please wait for us to confirm before travelling; a request is not a confirmed appointment.'),
 ]

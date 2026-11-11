@@ -119,7 +119,7 @@ if (glow && !reduce.matches && window.matchMedia('(pointer: fine)').matches) {
 }
 
 // Enquiry form
-const waText = data => `Hello Infinity Vision, I would like to enquire about offline classes in Bhopal.\nName: ${data.name || '-'}\nMobile: ${data.phone || '-'}\nCourse: ${data.course || 'Not sure yet'}\nStarting level: ${data.level || '-'}\nBest time: ${data.preferred_time || '-'}\nMessage: ${data.message || '-'}`;
+const waText = data => `Hello Infinity Vision, I would like to enquire about offline classes at your centre.\nName: ${data.name || '-'}\nMobile: ${data.phone || '-'}\nCourse: ${data.course || 'Not sure yet'}\nStarting level: ${data.level || '-'}\nBest time: ${data.preferred_time || '-'}\nMessage: ${data.message || '-'}`;
 for (const form of document.querySelectorAll('[data-enquiry-form]')) {
   const source = form.querySelector('[data-source-page]');
   if (source) source.value = location.pathname;

@@ -1,6 +1,6 @@
 # Infinity Vision website (Cloudflare Workers)
 
-Offline-first institute site for **Infinity Vision**, E-2, 359 Arera Colony, Bhopal (call/WhatsApp 9098372445).
+Offline-first institute site for **Infinity Vision**, Bhopal (call/WhatsApp 9098372445). The current centre address is in `tools/institute.py` so a move is a one-file change.
 Static pages are generated from Python content files, styled with locally compiled Tailwind v4, and served by a
 Cloudflare **Worker with static assets**. A small API stores enquiries in **D1**.
 

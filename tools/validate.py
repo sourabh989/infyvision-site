@@ -3,6 +3,9 @@ from html.parser import HTMLParser
 from urllib.parse import urlsplit,unquote
 import json,re
 ROOT=Path(__file__).resolve().parents[1]
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from institute import ADDRESS
 OUT=ROOT/'public'
 class Page(HTMLParser):
  def __init__(self,text):
@@ -40,7 +43,7 @@ for p,page in pages.items():
    if rel.startswith('courses/') and rel!='courses/index.html' and 'Course' not in types:issues.append((rel,'Course schema'))
    if 'timeRequired' in blk:issues.append((rel,'timeRequired'))
   except Exception as e:issues.append((rel,'Bad JSON-LD',str(e)))
- if 'E-2, 359 Arera Colony Bhopal' not in visible:issues.append((rel,'Address'))
+ if ADDRESS not in visible:issues.append((rel,'Address'))
  for t,a in page.tags:
   if t=='form' and (a.get('action')!='/api/enquiry' or a.get('method')!='post'):issues.append((rel,'Form must POST to /api/enquiry',a.get('action')))
   if t=='form' and 'data-enquiry-form' not in a:issues.append((rel,'Form missing enhancement hook'))
@@ -89,7 +92,7 @@ assert len([1 for t,a in home.tags if 'data-course-card' in a])==5
 assert hometext.count('class="card mini-card"')==4
 order=[hometext.index('class="card course-card" id="'+s+'"') for s in ['data-analytics','performance-marketing','full-stack','tally-gaap-ifrs','excel']]
 assert order==sorted(order),'Main course order wrong'
-for needle in ['Excel Reporting Clinic','SQL Foundations','Power BI/DAX Foundations','GA4 Basics','Performance Marketing &amp; Analytics','Web &amp; App Development (Full Stack)','Tally with US GAAP &amp; IFRS','Roles you can apply for','Tools you practise in our Bhopal classroom include Excel, SQL, Power BI, Google Ads, Meta Ads, GA4, Tally Prime, HTML, CSS and React.']:
+for needle in ['Excel Reporting Clinic','SQL Foundations','Power BI/DAX Foundations','GA4 Basics','Performance Marketing &amp; Analytics','Web &amp; App Development (Full Stack)','Tally with US GAAP &amp; IFRS','Roles you can apply for','Tools you practise in our classroom include Excel, SQL, Power BI, Google Ads, Meta Ads, GA4, Tally Prime, HTML, CSS and React.']:
  assert needle in hometext,needle
 assert hometext.count('WhatsApp us')>=5 and hometext.count('View syllabus')>=5
 for pth in pages:
