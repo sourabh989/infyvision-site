@@ -46,7 +46,7 @@ for p,page in pages.items():
  if ADDRESS not in visible:issues.append((rel,'Address'))
  for t,a in page.tags:
   if t=='form' and (a.get('action')!='/api/enquiry' or a.get('method')!='post'):issues.append((rel,'Form must POST to /api/enquiry',a.get('action')))
-  if t=='form' and 'data-enquiry-form' not in a:issues.append((rel,'Form missing enhancement hook'))
+  if t=='form' and 'data-enquiry-form' not in a and 'data-guide-form' not in a:issues.append((rel,'Form missing enhancement hook'))
  for tag,key,url in page.refs:
   if url.startswith('tel:'):
    tel+=1
@@ -112,6 +112,17 @@ sm=(OUT/'sitemap.xml').read_text();assert sm.count('<loc>')==len(pages),sm
 for o,n in [('advanced-excel','excel'),('tally-erp-gst','tally-gaap-ifrs'),('us-gaap-ifrs-xero','tally-gaap-ifrs'),('digital-marketing','performance-marketing'),('front-end-development','full-stack'),('full-stack-development','full-stack'),('data-analytics','data-analytics'),('business-analytics','data-analytics'),('app-development','full-stack')]:
   pass  # /programs/* redirects live in src/worker.js, tested in tools/test-worker.mjs
 assert 'FAQPage' in (OUT/'faq/index.html').read_text()
+guides=['data-analytics','performance-marketing','full-stack','tally-gaap-ifrs','excel']
+for slug in guides:
+  pdf=OUT/'guides'/f'{slug}.pdf'
+  assert pdf.exists() and pdf.stat().st_size>8000, pdf
+  import subprocess as _sp
+  info=_sp.check_output(['pdfinfo',str(pdf)],text=True)
+  pdf_pages=int([ln.split(':',1)[1] for ln in info.splitlines() if ln.startswith('Pages:')][0])
+  assert 4<=pdf_pages<=6, (slug,pdf_pages)
+  ch=(OUT/'courses'/slug/'index.html').read_text()
+  assert 'data-guide-form' in ch and f'guide:{slug}' in ch and f'/guides/{slug}.pdf' in ch and 'id="intro-guide"' in ch
+assert 'id="intro-guides"' in (OUT/'courses'/'index.html').read_text()
 for pg in ['placement','how-it-works','faculty','faq','contact','courses','privacy']:assert (OUT/pg/'index.html').exists(),pg
 faculty=(OUT/'faculty/index.html').read_text()
 for bad in ['IIT','CA ','years of experience','Queen']:assert bad not in faculty.split('<footer')[0],bad

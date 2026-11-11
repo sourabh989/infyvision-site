@@ -422,3 +422,20 @@
 .consent input { width: 18px; height: 18px; margin: 1px 0 0; flex: none; accent-color: var(--color-primary); }
 .consent a { color: var(--color-primary); font-weight: 600; text-decoration: underline; }
 .consent input[aria-invalid="true"] { outline: 2px solid #d92d4a; outline-offset: 2px; }
+
+/* Free intro-guide block (below the first view on course pages) */
+.guide-card { display: grid; gap: 18px; grid-template-columns: minmax(0,1fr); align-items: start; max-width: 100%; }
+@media (min-width: 800px) { .guide-card { grid-template-columns: minmax(0,1.15fr) minmax(0,1fr); } }
+.guide-card:hover { transform: none; }
+.guide-copy h2 { font-size: clamp(20px, 2.4vw, 26px); margin: 4px 0 8px; }
+.guide-copy p { color: var(--color-muted); font-size: 14.5px; }
+.guide-enq .enq-fields { grid-template-columns: minmax(0,1fr); }
+@media (min-width: 560px) { .guide-enq .enq-fields { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+.guide-enq .consent, .guide-enq .enq-actions, .guide-enq .fine, .guide-enq .form-error { grid-column: 1 / -1; }
+.grid-guides { display: grid; gap: 12px; grid-template-columns: minmax(0,1fr); }
+@media (min-width: 640px) { .grid-guides { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (min-width: 1024px) { .grid-guides { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+.guide-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 14px 16px; }
+.guide-link strong { display: block; font-size: 15px; }
+.guide-link small { display: block; font-size: 12.5px; color: var(--color-muted); }
+.guide-link .ic { margin-left: auto; color: var(--color-primary); width: 18px; height: 18px; flex: none; }

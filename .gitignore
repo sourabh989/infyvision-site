@@ -12,3 +12,6 @@ site/
 VALIDATION.json
 INTERACTION-TESTS.txt
 __pycache__/
+
+# Generated guide HTML (PDFs are built into public/guides)
+.guides-html/

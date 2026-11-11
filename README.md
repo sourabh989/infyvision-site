@@ -49,7 +49,9 @@ while this is a preview. `_headers` does not apply to Worker responses, so the W
 ## Enquiry API
 **`POST /api/enquiry`** (JSON or form-encoded; no-JS form posts get a small HTML reply)
 fields: `name` (2-80 chars), `phone` (Indian mobile, 10 digits starting 6-9; `+91`/`0` prefixes and spaces ok),
-`course` (one of `src/form-options.json` courses), `preferred_time` (one of the listed times), optional `level`, `message` (600 chars), `source_page`.
+`course` (one of `src/form-options.json` courses), `preferred_time` (one of the listed times), optional `level`, `message` (600 chars), `source_page` (a page path, or `guide:<slug>` when someone requests the free intro PDF).
+Course pages also have a compact name-and-phone form for the printable intro guide; those rows use `source_page` like `guide:data-analytics` and appear in `/api/enquiries/unsynced` with the other enquiries.
+PDFs are generated at build time by `tools/build_guides.py` into `public/guides/<slug>.pdf`.
 Protection: same-origin check, hidden honeypot field `website` (filled = silently dropped), 8 KB body cap, and a rate limit of
 5 enquiries per hashed IP per 10 minutes (`RATE_LIMIT_MAX`, `RATE_LIMIT_WINDOW_MINUTES`). IPs are stored only as a salted SHA-256 hash.
 Turnstile is not used (it would add a third-party script and a widget to manage); add it if spam appears.

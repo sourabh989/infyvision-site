@@ -170,3 +170,65 @@ for (const form of document.querySelectorAll('[data-enquiry-form]')) {
     }
   });
 }
+
+
+// Free intro-guide form (name + phone). Posts to the same enquiry API, then starts the PDF download.
+const guideWa = data => `Hello Infinity Vision, I have downloaded the ${data.course || 'course'} intro guide and would like to ask about offline classes at your centre.\nName: ${data.name || '-'}\nMobile: ${data.phone || '-'}`;
+for (const form of document.querySelectorAll('[data-guide-form]')) {
+  const error = form.querySelector('[data-form-error]');
+  const fields = form.querySelector('[data-form-fields]');
+  const status = form.querySelector('[data-form-status]');
+  const submit = form.querySelector('[data-submit]');
+  const label = form.querySelector('[data-submit-label]');
+  const slug = form.getAttribute('data-guide-slug') || '';
+  const pdf = form.getAttribute('data-guide-href') || (slug ? `/guides/${slug}.pdf` : '');
+  const read = () => Object.fromEntries(new FormData(form).entries());
+  const fail = (msg, name) => {
+    error.textContent = msg; error.hidden = false;
+    form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+    const el = name && form.elements[name];
+    if (el) { el.setAttribute('aria-invalid', 'true'); el.focus(); }
+  };
+  const check = d => {
+    if (!d.name || d.name.trim().length < 2) return ['Please enter your name.', 'name'];
+    const digits = String(d.phone || '').replace(/[\s\-().+]/g, '').replace(/^(91|0)(?=\d{10}$)/, '');
+    if (!/^[6-9]\d{9}$/.test(digits)) return ['Please enter a valid 10-digit Indian mobile number.', 'phone'];
+    if (!d.consent) return ['Please tick the box to agree to be contacted about courses.', 'consent'];
+    return null;
+  };
+  const startDownload = url => {
+    if (!url) return;
+    const a = document.createElement('a');
+    a.href = url;
+    a.setAttribute('download', '');
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const data = read();
+    const bad = check(data);
+    if (bad) return fail(bad[0], bad[1]);
+    error.hidden = true;
+    submit.disabled = true; if (label) label.textContent = 'Sending…';
+    try {
+      const res = await fetch('/api/enquiry', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok || !out.ok) {
+        const name = out.fields ? Object.keys(out.fields)[0] : null;
+        fail(out.error || 'Your request was not sent. Please try again or use WhatsApp.', name);
+      } else {
+        startDownload(out.guide_url || pdf);
+        const wa = form.querySelector('[data-guide-wa]');
+        if (wa) wa.href = `https://wa.me/${WA}?text=${encodeURIComponent(guideWa(data))}`;
+        fields.hidden = true; status.hidden = false; status.focus();
+      }
+    } catch {
+      fail('No connection. Please try again, or WhatsApp 9098372445.');
+    } finally {
+      submit.disabled = false; if (label) label.textContent = 'Get the free intro guide';
+    }
+  });
+}

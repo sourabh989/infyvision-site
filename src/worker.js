@@ -23,6 +23,18 @@ export function normalisePhone(raw) {
   return /^[6-9]\d{9}$/.test(d) ? d : '';
 }
 
+
+const GUIDE_SLUGS = ['data-analytics', 'performance-marketing', 'full-stack', 'tally-gaap-ifrs', 'excel'];
+/** Page path, or a guide download interest such as "guide:data-analytics". Invalid guide tags return false. */
+export function normaliseSource(source_page, interest) {
+  const raw = clean(source_page, 120) || clean(interest, 120);
+  if (!raw) return null;
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+  const m = /^guide:([a-z0-9-]+)$/.exec(raw);
+  if (m) return GUIDE_SLUGS.includes(m[1]) ? raw : false;
+  return null;
+}
+
 const clean = (v, max) => String(v ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim().slice(0, max);
 const cleanMessage = (v, max) => String(v ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').replace(/\r\n?/g, '\n').trim().slice(0, max);
 
@@ -39,17 +51,18 @@ export function validateEnquiry(input) {
   const preferred_time = clean(input.preferred_time ?? input.time, 60);
   const level = clean(input.level, 40);
   const message = cleanMessage(input.message, 600);
-  const source_page = clean(input.source_page, 120);
+  const source_page = normaliseSource(input.source_page, input.interest);
   if (name.length < 2 || !/\p{L}/u.test(name)) errors.name = 'Please enter your name.';
   if (!phone) errors.phone = 'Please enter a valid 10-digit Indian mobile number.';
   if (!OPTIONS.courses.includes(course)) errors.course = 'Please choose a course from the list.';
   if (!OPTIONS.times.includes(preferred_time)) errors.preferred_time = 'Please choose a preferred time.';
   if (level && !OPTIONS.levels.includes(level)) errors.level = 'Please choose your starting level from the list.';
   if (String(input.message ?? '').length > 2000) errors.message = 'Please keep the message under 600 characters.';
+  if (source_page === false) errors.source_page = 'That guide request is not recognised.';
   return {
     ok: Object.keys(errors).length === 0,
     errors,
-    value: { name, phone, course, level: level || null, preferred_time, message: message || null, source_page: source_page.startsWith('/') ? source_page : null },
+    value: { name, phone, course, level: level || null, preferred_time, message: message || null, source_page: source_page || null },
   };
 }
 
@@ -72,10 +85,11 @@ async function readBody(request) {
   throw Object.assign(new Error('Unsupported content type.'), { status: 415 });
 }
 
-function htmlResult(ok, text, back, status = ok ? 200 : 400) {
+function htmlResult(ok, text, back, status = ok ? 200 : 400, extra = null) {
   const safe = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const href = back && back.startsWith('/') && !back.startsWith('//') ? back : '/';
-  const body = `<!DOCTYPE html><html lang="en-IN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${ok ? 'Enquiry received' : 'Enquiry not sent'} | Infinity Vision</title><link rel="stylesheet" href="/assets/site.css"></head><body><main id="main" style="max-width:640px;margin:12vh auto;padding:24px"><h1>${ok ? 'Thank you, we have your enquiry.' : 'Your enquiry was not sent.'}</h1><p>${safe(text)}</p><p><a class="btn btn-primary" href="${safe(href)}#contact">Back to the website</a> <a class="btn btn-wa" href="https://wa.me/919098372445" rel="noopener noreferrer">WhatsApp 9098372445</a> <a class="btn btn-ghost" href="tel:+919098372445">Call 9098372445</a></p></main></body></html>`;
+  const extraBtn = extra?.href ? `<p><a class="btn btn-primary" href="${safe(extra.href)}">${safe(extra.label || 'Download the intro guide (PDF)')}</a></p>` : '';
+  const body = `<!DOCTYPE html><html lang="en-IN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${ok ? 'Enquiry received' : 'Enquiry not sent'} | Infinity Vision</title><link rel="stylesheet" href="/assets/site.css"></head><body><main id="main" style="max-width:640px;margin:12vh auto;padding:24px"><h1>${ok ? 'Thank you, we have your enquiry.' : 'Your enquiry was not sent.'}</h1><p>${safe(text)}</p>${extraBtn}<p><a class="btn btn-primary" href="${safe(href)}#contact">Back to the website</a> <a class="btn btn-wa" href="https://wa.me/919098372445" rel="noopener noreferrer">WhatsApp 9098372445</a> <a class="btn btn-ghost" href="tel:+919098372445">Call 9098372445</a></p></main></body></html>`;
   return new Response(body, { status, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'x-robots-tag': 'noindex, nofollow', 'content-security-policy': "default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'" } });
 }
 
@@ -86,7 +100,7 @@ async function handleEnquiry(request, env) {
   let parsed;
   try { parsed = await readBody(request); } catch (e) { return json({ ok: false, error: e.message }, e.status || 400); }
   const { data, isJson } = parsed;
-  const respond = (ok, status, payload, text) => (isJson ? json(payload, status) : htmlResult(ok, text, clean(data.source_page, 120), ok ? 200 : status));
+  const respond = (ok, status, payload, text, extra) => (isJson ? json(payload, status) : htmlResult(ok, text, clean(data.source_page, 120) || '/', ok ? 200 : status, extra));
 
   // Honeypot: real visitors never fill this hidden field. Pretend success, store nothing.
   if (clean(data.website, 200)) return respond(true, 200, { ok: true }, 'Thank you. Our team will call you back soon.');
@@ -113,7 +127,14 @@ async function handleEnquiry(request, env) {
   const ua = clean(request.headers.get('user-agent'), 300);
   const row = await env.DB.prepare('INSERT INTO enquiries (created_at, name, phone, course, level, preferred_time, message, source_page, user_agent, ip_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10) RETURNING id')
     .bind(createdAt, v.name, v.phone, v.course, v.level, v.preferred_time, v.message, v.source_page, ua, ipHash).first();
-  return respond(true, 201, { ok: true, id: row?.id, created_at: createdAt }, 'Our team will call you back on the number you gave. For a faster reply, message us on WhatsApp.');
+  const isGuide = typeof v.source_page === 'string' && v.source_page.startsWith('guide:');
+  const guideSlug = isGuide ? v.source_page.slice(6) : '';
+  const thanks = isGuide
+    ? 'Your intro guide is ready to download. Our team can also call you on the number you gave. For a faster reply, message us on WhatsApp.'
+    : 'Our team will call you back on the number you gave. For a faster reply, message us on WhatsApp.';
+  const payload = { ok: true, id: row?.id, created_at: createdAt };
+  if (isGuide) payload.guide_url = `/guides/${guideSlug}.pdf`;
+  return respond(true, 201, payload, thanks, isGuide ? { href: `/guides/${guideSlug}.pdf`, label: 'Download the intro guide (PDF)' } : null);
 }
 
 async function isAdmin(request, env) {

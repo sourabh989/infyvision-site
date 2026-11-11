@@ -26,4 +26,15 @@ for(const pkg of ['tailwindcss','esbuild','@fontsource/poppins']) {
   licenses.push(`${pkg} ${manifest.version}\n${name ? await fs.readFile(path.join(dir,name),'utf8') : 'See package distribution license.'}`);
 }
 await fs.writeFile(path.join(assets,'THIRD-PARTY-LICENSES.txt'),licenses.join('\n\n---------------------\n\n'));
+
+const guideEnv = {
+  ...process.env,
+  PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH || '/workspace/qa-tools/browsers',
+  NODE_PATH: [process.env.NODE_PATH, '/workspace/qa-tools/node_modules'].filter(Boolean).join(path.delimiter),
+  GUIDE_OUT: path.join(target, 'guides'),
+  GUIDE_FONTS: assets,
+};
+// Do not inherit a proxy; Playwright talks to a local Chromium.
+for (const k of ['http_proxy','https_proxy','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','all_proxy']) delete guideEnv[k];
+execFileSync('python3', ['tools/build_guides.py'], {stdio:'inherit', env: guideEnv});
 console.log('Clean static output:',target);
